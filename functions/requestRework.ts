@@ -15,9 +15,9 @@ import { createEditBatch } from "@osdk/functions";
 import { Edits } from "@osdk/functions";
 
 //importing my own rules from escrow.ts rulebook.
-import { assertTransition } from "../lib/escrow.js";
-import { newId } from "../lib/escrow.js";
-import { nowIso } from "../lib/escrow.js";
+import { assertTransition } from "../domain/escrow.js";
+import { newId } from "../domain/escrow.js";
+import { nowIso } from "../domain/escrow.js";
 
 //Step 1: Instantiating the two objects types that requesting rework changes
 //Edits.Object<X> works at the object-type level. It says "this function may create, update or delete objects of type X. So I list types, never individual propertties"
