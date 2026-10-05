@@ -10,7 +10,7 @@
 //   from "@osdk/functions":     createEditBatch, Edits
 //   from "../domain/escrow.js": newId, nowIso
 
-import { AiReview, EvidenceSubmissions, Milestone } from "@ontology/sdk";
+import { AiReview, EvidenceSubmissions } from "@ontology/sdk";
 import { Client, Osdk } from "@osdk/client";
 import { createEditBatch, Edits } from "@osdk/functions";
 import { newId, nowIso} from "../domain/escrow.js";
@@ -48,7 +48,7 @@ const confidences = ["LOW", "MEDIUM", "HIGH"];
         //create an empty list of planned changes
         const batch = createEditBatch<OntologyEdit>(client);
         ///create a new AIReview object with the input parameters
-        batch.create(AiReview,{reviewId: newId("AIR"), evidenceId: evidence.evidenceId!, milestoneId: evidence.milestoneId!, recommendation: recommendation, issues:issues, draftReworkMessage: draftReworkMessage, model: model, createdAt:nowIso()});
+        batch.create(AiReview,{reviewId: newId("AIR"), evidenceId: evidence.evidenceId!, milestoneId: evidence.milestoneId!, confidence:confidence, recommendation: recommendation, issues:issues, draftReworkMessage: draftReworkMessage, model: model, createdAt:nowIso()});
         //return the list of edits
         return batch.getEdits();
     }
