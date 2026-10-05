@@ -1,4 +1,4 @@
-"This function, requestRework, is the payer taking an action to request rework (via clicking a button in Foundry)";
+// "This function, requestRework, is the payer taking an action to request rework (via clicking a button in Foundry)";
 
 //Imports
 //importing object types from my ontology - ontlogy/sdk
@@ -47,10 +47,10 @@ export default async function requestRework(
 
   //get the newest AI review for this milestone if it exists
 
-  const reviews = await client(AiReview) // await is used in this asynch function and must return //client(AiReview) is connecting to Foundry and searching for AiReview object
+  const reviews = await client(AiReview) // await is used in this asynch function. it waits until the data arrives. //client(AiReview) is connecting to Foundry and searching for AiReview object
     .where({ milestoneId: { $eq: milestoneId } }) //where the ID of this object's milestone is equal to the milestoneID of said milestone we're currently focused on
     .fetchPage({ $orderBy: { createdAt: "desc" }, $pageSize: 1 }); //fetching the most recent AI review descending order timewise
-  const latestReview = reviews.data[0]; //most recent AI review. reviews.data is all the AI reviews for that milestone.
+  const latestReview = reviews.data[0]; //most recent AI review. reviews.data holds at most 1 review.
 
   //now we set the boolean if payer agreed with the AI review or not
   const agreedWithAI = latestReview

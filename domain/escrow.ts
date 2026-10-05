@@ -1,7 +1,7 @@
-// node's built-in random id generator, used by newId below
+//node's built-in random id generator, used by newId below
 import { randomUUID } from "node:crypto";
 
-// every status a milestone can be in. union type, so a typo like "APROVED" won't compile
+//every status a milestone can be in. union type, so a typo like "APROVED" won't compile
 export type MilestoneStatus =
   | "BLOCKED"
   | "PENDING"
@@ -10,7 +10,7 @@ export type MilestoneStatus =
   | "APPROVED"
   | "RELEASED";
 
-// the state machine. key = current status, value = the statuses it's allowed to move to
+//the state machine. key = current status, value = the statuses it's allowed to move to
 // Record forces me to list every status, readonly means nobody can push to these lists later
 export const ALLOWED_TRANSITIONS: Record<
   MilestoneStatus,
