@@ -62,8 +62,87 @@ export default async function approveAndRelease(
         throw new Error(`Amount inside escrow, ${escrowMinor}, is less than amount owed for payout, ${amountMinor}.`)
     }
 
+    // ---- THE MONEY: split the payment and build the two journal entries ----
+    // TODO 7: call splitTranche(amountMinor) and pull out retainageMinor, feeMinor, netMinor
+    //         also: const at = nowIso();   one timestamp for everything in this approval
+    const split = splitTranche(amountMinor);
+    const retainageMinor = split.retainageMinor;
+    const feeMinor = split.feeMinor;
+    const netMinor = split.netMinor; 
+    const at = nowIso();
+    
+    // release = bookkeeping. money leaves escrow into the three buckets --> record of payment
+    const releaseId = newId("JE"); //the id will begin with letters JE then randomly generated numbers and chars
+
+    //for this posting - payer approves and releases - money will 
+    // 1. leave escrow, so it's negative
+    // 2. enter the builder payable, so it's positive
+    // 3. enter the retainage, so it's positive
+    // 4. enter the fees, so it's positive
+    const releasePostings: PostingDraft[] = [
+        {account: "ESCROW", amountMinor: -amountMinor },
+        {account: "BUILDER_PAYABLE", amountMinor: amountMinor},
+        {account: "RETAINAGE", amountMinor: retainageMinor},
+        {account: "FEES", amountMinor: feeMinor}
+    ];
+
+    //then we have to check if all amountMinor entries in this "table" sum to 0 AKA are balanced.
+    assertBalanced(releasePostings);
+
+     
+    // payout = the builder's share actually leaves (simulated bank transfer)
+    // an account has 6 different fields export type Account =
+//   "FUNDING" | "ESCROW" | "BUILDER_PAYABLE" | "RETAINAGE" | "FEES" | "PAID_OUT";
+    //first create a new JE detailing the actual payout
+    const payoutId = newId("JE"); 
+    
+    // so here we are editing the builder pauable and paid out fields
+    const payoutPostings: PostingDraft[] = [
+        {account: "BUILDER_PAYABLE", amountMinor: -netMinor}, //IOU, so negative. Remember, the netMinor is the amount actually paid out to the builder.
+        {account: "PAID_OUT", amountMinor: netMinor} //Credit, so positive.
+    ];
+
+    // then we check if the payout is balanced.
+    assertBalanced(payoutPostings);
 
 
+
+    // ---- WRITE IT: queue the entries and their postings ----
+    // TODO 10: for EACH of the two entries:
+    //          batch.create(JournalEntries, { entryId, projectId, milestoneId, memo, at })
+    //          then batch.create(Posting, { postingId, entryId, projectId, account, amountMinor })
+    //          once per line, with postingId like `${releaseId}-P1`, `${releaseId}-P2`, ...
+
+
+    batch.create(JournalEntries, {
+        entryId: releaseId,
+        projectId: projectId,
+        milestoneId: milestoneId,
+        memo: `Release for "${milestone.title}"`
+    });
+
+    batch.create(JournalEntries, {
+        entryId: payoutId,
+        projectId: projectId,
+        milestoneId: milestoneId,
+        memo: `Release for "${milestone.title}"`
+    }); 
+
+    
+
+
+    // ---- MARK IT PAID ----
+    // TODO 11: batch.update the milestone: status "RELEASED", payoutStatus "SETTLED", releaseEntryId: releaseId
+
+    // ---- THE DECISION RECORD: maria's decision + whether she agreed with the AI ----
+    // TODO 12: copy the AiReview lookup + batch.create(ReviewDecisions, ...) from requestRework. Change:
+    //          decision: "APPROVED"
+    //          agreedWithAI: true if the AI said "APPROVE" (the opposite of requestRework)
+    //          decidedAt: at
+
+    // hand the full list of edits to foundry
+    return batch.getEdits();
+}
     
 
     // throws if from -> to isn't allowed. every action calls this before changing anything
@@ -79,6 +158,7 @@ export default async function approveAndRelease(
     //     throw new Error(`Cannot move a milestone from ${from} to ${to}`);
     //   }
     // }
+
 
 }
 
