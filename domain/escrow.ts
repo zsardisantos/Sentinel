@@ -108,3 +108,84 @@ export function assertBalanced(postings: PostingDraft[]): void {
     throw new Error(`Amount must add to 0. The current total is ${total}`);
   }
 }
+
+//PART F: Building an ACID rule for escrow calculations given two requests made on milestones - i.e. request A approves milestone 1 stage 2, pays out escrow, then request B works on milestone 1 stage 3 but has to recalculate escrow as it has now changed!
+
+
+// The function receives freshly fetched postings and a project ID. 
+// It adds only that project’s `ESCROW` postings and returns the total in cents. The transaction and locks belong to the calling code.
+
+// Here’s your skeleton, using the existing `PostingDraft` type from `domain/escrow.ts`:
+
+//draft: one line of a journal entry before it's saved. Has an account and the amount to be paid.
+// export interface PostingDraft {
+//   account: Account;
+//   amountMinor: number;
+// }
+
+//interface is a check that helps TypeScript check the types of objects at runtime (compiled)
+export interface ProjectPosting extends PostingDraft {
+  projectId: string
+}
+
+//calculateEscrowBalance sums the escrow postings belonging to a certain project to calculate the total amount in escrow.
+export function calculateEscrowBalance(
+  postings: readonly ProjectPosting[],
+  projectId: string //separate projectId parameter tells the function which project's balance you want.
+): number{
+   // TODO 1: Create a running total starting at zero.
+  let runningTotal = 0; // let declares a local variable whose value can change. 
+  // TODO 2: Loop through the postings.
+  //loops in Typescript:
+  //1. Iterating over Arrays or Collections --> for(const iterator of iterableList){}
+  for(const posting of postings){
+    //  TODO 3: For each posting, check that its projectId matches
+// and its account is "ESCROW".
+    if (posting.projectId === projectId && posting.account == "ESCROW"){
+      // TODO 4: Add each matching posting's amountMinor to the total.
+      runningTotal+=posting.amountMinor;
+    }
+
+    //   
+
+}
+return runningTotal;
+}
+
+//PART G. Recognize a retry by finding its saved approval result. Searching an array and returning either an object or undefined. 
+//architectural decision: we only store successful approvals.
+
+//these are the completed approvals we save in the followign schema. its request ID (Idempotency key), its relevant milestone, and its entryID in journal entries
+export interface CompletedApproval{
+  requestId: string;
+  milestoneId: string;
+  releaseEntryId: string;
+}
+
+//function to find the completed approvals regarding a specific milestone and requestID (every single milestone status change has an associated request ID)
+
+export function findCompletedApproval(
+  approvals: readonly CompletedApproval[],
+  requestId: string,
+  milestoneId: string
+): CompletedApproval | undefined {
+//   // TODO 1: Loop through the saved approvals.
+for(const approval of approvals){
+  //   // TODO 2: Find an approval whose requestId matches.
+//   // Skip records with other request IDs.
+  if (approval.requestId === requestId){
+    //   // TODO 3: If that record's milestoneId differs, throw an error.
+    if(approval.milestoneId !== milestoneId){
+      throw new Error (`The expected Milestone for this request type, ${milestoneId}, is different than the actual milestone this request is being performed on, ${approval.milestoneId}. Please ensure you are working on the correct milestone!`)
+    }
+//   // The same key cannot represent approval of a different milestone.
+
+//   // TODO 4: Return the matching record.
+  return approval;
+
+  }
+
+  }
+  return undefined;
+}
+
