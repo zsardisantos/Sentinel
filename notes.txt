@@ -1,0 +1,84 @@
+Drizzle:
+
+Postgres only understands SQL, a text language. My code is TypeScript. Something has to translate between them.
+Drizzle is a TS library that lets me write database queries as TS code then turns them into SQL. 
+This kind of library is called an ORM (Object-Relational Mapper) or a Query Builder.
+
+Drizzle does type checking so it would catch a failing query before it ever runs. Drizzle also prevents SQL injection (never glue user input into a SQL string yourself).
+
+
+OWASP Top 10: Open Worldwide Application Security Project.
+Most common and serious security risks in web applications. Shared checklist to be used by Engineers. 
+
+1. Broken Access Control: Users can do things they shouldn't be allowed to. Sentinel: A builder calling approveAndRelease on their own milestone.
+2. Security Misconfiguration: Unsafe settings like default passwords.
+3. Software Supply Chain Failures: A dependency or build tool is compromised or out of date.
+4. Cryptographic Failures: Sensitive data not encrypted or encrypted badly. Sentinel example is financial data sent without TLS.
+5. Injection: User input gets run as code, for example SQL. Which can effect databases.
+
+Database migration: The problem is that my schema will change, columns will be deleted and added. There needs to be a SSOT.
+How do I make sure every database gets the same changes in the same order exactly once?
+
+A migration is one numbered file of SQL that changes the schema from one version to the next. Migrations are to my database what commits are to my code. A recroded history of changes, applied in order.
+
+drizzle/
+  0000_create_tables.sql        <- Phase 1: creates your 9 tables
+  0001_add_milestone_due_date.sql   <- a future change
+  0002_add_index_on_postings.sql    <- another future change
+
+Your first migration (Step 7) will contain SQL like:
+CREATE TABLE "projects" (
+  "project_id" text PRIMARY KEY NOT NULL,
+  "title" text NOT NULL
+);
+
+Dependencies: Software needed for the app to run. A production server installs these.
+devDependencies: needed only to build check or test. A production server can skip them. 
+node_modules/ is where the actual code / packages are downloaded. That folder is ignored by git. 
+
+Node.js: Program that runs JavaScript outside a web browser.
+
+Language vs Runtime:
+A language is a set of rules for writing code: its syntax, and what if, for and function mean. Javascript is a language. TypeScript is JavaScript plus types.
+A runtime is the program that actually executes code written in that language and that gives the code access to things outside itself: files, the network, the clock.
+
+The language is the sheet music and the runtime is the musician who plays it. The same sheet music can be played by different musicians.
+
+1995: JavaScript was created to run inside web browsers, to make web pages interactive. The browser was its only runtime, and the browser deliberately limits it: a web page can't read the files on your computer for good security reasons.
+2009: Ryan Dahl wrapped the browser engine (V8) with access to the operating system: reading files, opening network connections, starting processes. That was Node.js. Suddenly JavaScript could be used to write servers, not just web pages.
+
+Node is a PROGRAM. Like Python3 the program: The thing I type in my terminal to run a .py file.
+python3 hello.py --> python3 is a program. It reads hello.py and executes it. 
+
+Javascript works the same way. Javascript is a language, the rules for writing JavaScript code. Node is the program; the thing you type in your terminal to run a .js file
+node hello.js --> node is a program. It reads hello.js and executes it.
+
+Runtime is just the name for that kind of program: one that runs code written in some language. Node is a runtime for JavaScript.  Node.js is the node program that RUNS JavaScript.
+
+Browser: Javascript --> the only program that could run it was a web browser. When you visit a website the page includes JavaScript code. Chrome is the runtime. It runs that code to make buttons respond, menus open and so on.
+So in 2009 if I wanted to write JavaScript it had to live inside a web page and run inside Chrome Firefox or Safari. 
+
+Node is a program that was created after. It took the part of Chrome that runs JavaScript and turned it into a standalone terminal program. That's all "runs JavaScript outside a web browser" means: You no longer need a browser to run JavaScript.
+
+HTML: HTML doesn't run, it gets rendered. JavaScript is the code/instructions. A runtime (browser or Node) executes the instructions one step at a time.
+HTML is a markup, a description. It contains no steps and no logic. You can't write if or a loop in HTML. So a browser doesn't run HTML. It renders it: reads the description and draws the page on screen. 
+
+curl = terminal program that sends a request to a URL and shows you the response. Client URL.
+Speaks HTTP. Prints the raw text. Test API with curl.
+
+Compiler vs Interpreter: CPU only understands machine code: raw binary instructions specific to that chip.
+Eveyr language I write has to become machine code somehow. Compilersa and interperters are two streafgtgesites for gettignt here. 
+
+Compiler: Translate everything first, run later. A compiler reads the whole program, translates it into assembley,
+and saves the result as a new file. Then you run that file.
+gcc hello.c -o hello --> step 1 compile hello.c to hello (machine code file)
+./hello --> run the result.
+
+Translating a whole book before anyoen reads it. Translation takes time up front, but reading the result is fast.
+
+Interpreter: Read and run, line by line, every time. It executes it as it goes with no separate output file.
+Live interpreter at a meeting translating each sentence as it's spoken.
+Tradeoff is that it slower running speed.
+
+A runtime contains an interpreter and/or compiler. Runtime is everything needed to run a program.
+It contains an interpreter and a compiler usually. 

@@ -1,3 +1,19 @@
+// ---- approveAndRelease.ts FUNCTION: It runs when the payer taps "approve" on a milestone. That milestone is in EVIDENCE_SUBMITTED, meaning the builder
+// has uploaded proof of work. It runs in three phases:
+// Phase A: Checks: 
+// 1. Status Check: assertTransition confirms that moving to APPROVED is allowed from the current status.
+// 2. Dependency check: every milestone this one depends on must already be RELEASED. One can't pay for the roof before the foundation is paid. 
+// 3. Escrow check: It sums the project's ESCROW postings to get the balance (never stored always computed) and confirms there's enough to cover amountMinor.
+
+//Phase B: Building the money movement
+// 1. SplitTranche: splits the amount into retainage, fee, and builder payout
+// 2. Release entry: money leaves escrow (-) and goes into three buckets: builder payable, retainage, and fees (+). The total must be summed to zero.
+// 3. Payout entry: builder payable (-) moves to paid out (+). This is the simulated bank transfer. 
+// assertBalanced checks each entry before anything is queued. 
+
+// Phase C: Queing the writes: It queues 2 journal entries, 6 postings, the milestone update to RELEASED/SETLED with an audit link releaseEntryId, and a ReviewDecisions record that notes whetehr the p[ayer agreed with the AI.
+
+
 //imports
 import {
   Milestone,
@@ -26,6 +42,8 @@ type OntologyEdit =
   | Edits.Object<Posting>
   | Edits.Object<ReviewDecisions>;
 
+// ---- THE FUNCTION: Approving milestones and sending associated payment to the builder. ----
+
 //Payer approves a milestone and now the money moves. Transaction so all edits must land together orn othing passes.
 //the milestone status is at EVIDENCE_SUBMITTED waiting for human decision. So payer manually approves, thus we have to first
 // assert it can move to approved and change milestone status to approved.
@@ -33,54 +51,33 @@ export default async function approveAndRelease(
   client: Client,
   milestone: Osdk.Instance<Milestone>,
   decidedBy: string,
-  reason: string
+  reason: string,
+  requestId: string            // TODO 1: new parameter (see below)
 ): Promise<OntologyEdit[]> {
   const batch = createEditBatch<OntologyEdit>(client);
+  // ... milestoneId, projectId, amountMinor as before ...
 
-  //pull three values - milestoneId, projectId, amountMinor, off the milestone (using !)
-  const milestoneId = milestone.milestoneId!;
-  const projectId = milestone.projectId!;
-  const amountMinor = milestone.amountMinor!;
+  // TODO 2: Fetch the saved approvals for this requestId.
+  // TODO 3: Call findCompletedApproval(saved, requestId, milestoneId).
+  // TODO 4: If it found one, return [] early. Nothing new to write.
 
-  //First check: status --> assertTransition to "APPROVED"
-  assertTransition(milestone.status, "APPROVED"); //will throw if illegal
+  assertTransition(milestone.status, "APPROVED"); // unchanged
+  // ... dependency check, escrow check, ledger, decision, all unchanged ...
 
-  //Second check: everything it depends on is "RELEASED"
-  const dependencies = await milestone.$link.dependsOn.fetchPage({
-    $pageSize: 100,
-  });
+  // TODO 5: Before `return batch.getEdits()`, add a batch.create(...) that
+  //         saves { requestId, milestoneId, releaseEntryId: releaseId }.
 
-  //from deps.data, keep only the ones whose status is NOT "RELEASED". If there are any, throw an error that names them.
-  const dependenciesNotReleased: Osdk.Instance<Milestone>[] = [];
-  //so loop through each dependency in the dependencies object (.data gives the list)
-  for (const dependency of dependencies.data) {
-    // if the dependency status is not released, we want to add it to the not yet released milestone list above.
-    if (dependency.status !== "RELEASED") {
-      dependenciesNotReleased.push(dependency);
-    }
-  }
-  //if the list actually exists and is populated, we want to throw an error and show the user what dependencies still have yet to be released
-  if (dependenciesNotReleased.length > 0) {
-    const names = dependenciesNotReleased.map((d) => `"${d.title}" (${d.status})`).join(", ");
-    throw new Error(`"${milestone.title}" depends on ${names}, which must be released first.`);
-}
 
-  // CLAUDE CHECK 3: escrow holds enough (balance = sum of ESCROW postings, never stored) ----
-  // layman terms - balances are never stored, query computes it form the ledger.
-  // SQL equivalent is SELECT SUM(amountMinor) FROM Posting WHERE projectId = 'PRJ-001' AND account = 'ESCROW'.
-  const agg = await client(Posting)
-    .where({
-      $and: [{ projectId: { $eq: projectId } }, { account: { $eq: "ESCROW" } }],
-    })
-    .aggregate({ $select: { "amountMinor:sum": "unordered" } });
-  const escrowMinor = agg.amountMinor.sum ?? 0; //here is escrowMinor which is the amount currently in escrow
+// What each TODO does:
+// 1. TODO 1: Add the request ID that the app sends. Also add findCompletedApproval to the import list from ../domain/escrow.js at the top.
+// 2. TODO 2: Read the saved approvals. Use the same pattern as the AiReview fetch on lines 182 to 184: client(SomeType).where({ requestId: { $eq: requestId } }).fetchPage(...). Then .data gives you the array.
+// 3. TODO 3: Pass that array to your Part G function and store the result in a const.
+// 4. TODO 4: This is an early return, which is new syntax for you:
+// if (existing !== undefined) {
+//   return [];   // leaves the function right here; nothing below runs
+// }
+// 5. TODO 5: This creates the record that TODO 2 will find on the next retry. Use batch.create(...), like the ReviewDecisions one on line 192.
 
-  // Fourth Check: if escrowMinor is less than amountMinor, throw an error and put both numbers in the message
-  if (escrowMinor < amountMinor) {
-    throw new Error(
-      `Amount inside escrow, ${escrowMinor}, is less than amount owed for payout, ${amountMinor}.`
-    );
-  }
 
   // ---- THE MONEY: split the payment and build the two journal entries ----
   // TODO 7: call splitTranche(amountMinor) and pull out retainageMinor, feeMinor, netMinor

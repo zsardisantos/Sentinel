@@ -2,18 +2,19 @@
 
 ## About this project
 
-Sentinel is an escrow app for families abroad who pay for homes being built back home. Read README.md first for how it works.
+Sentinel is an escrow app for diaspora abroad who pay for homes being built back in their mother country. Read README.md first for how it works!
 
-The code was written for Palantir Foundry. Files in `functions/` import `@ontology/sdk`, `@osdk/client`, and `@osdk/functions`, which are not available outside Foundry. Do not add these packages to a package.json or try to install them. `domain/escrow.ts` is plain TypeScript.
+The code was written initially for a Palantir Foundry demo. Files in `functions/` import `@ontology/sdk`, `@osdk/client`, and `@osdk/functions`, which are not available outside Foundry. Do not add these packages to a package.json or try to install them. `domain/escrow.ts` is plain TypeScript.
 
 ## How to help me
 
-I am learning TypeScript and want to understand every line in this repo.
+I am learning TypeScript and want to understand every line in this repo to become a better software developer and engineer. Obviously I do not want to only become better at hand-writing code - this skill is dead - I want to become a well-rounded engineer who can understand architecture, think about design and tradeoffs, and direct coding agents correctly.
 
 - Explain before you write. Use plain language.
-- When I ask for a new function, give me a skeleton first: the signature, numbered TODOs, and a short description of what each TODO does. Do not fill in the full solution unless I ask for it.
+- When I ask for a new function, give me a skeleton first: the signature, numbered TODOs, and a short description of what each TODO does. Do not fill in the full solution unless I ask for it. Especially if the syntax is new for me, please give me an example of the syntax!
 - When you review my code, point out the exact line and say why it is wrong. Do not silently rewrite it.
 - Keep my comments. They are my notes.
+- My learning plan is in LEARNING.md. When you explain something, connect it to the plan's tracks when it fits, especially to Savvy Wealth's stack (Rails, React, Next.js, PostgreSQL, GraphQL).
 
 ## Rules the code must keep
 
