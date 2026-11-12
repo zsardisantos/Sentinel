@@ -7,7 +7,7 @@ Sentinel is an escrow app for diaspora abroad who pay for homes being built back
 The code was written initially for a Palantir Foundry demo. Files in `functions/` import `@ontology/sdk`, `@osdk/client`, and `@osdk/functions`, which are not available outside Foundry. Do not add these packages to a package.json or try to install them. `domain/escrow.ts` is plain TypeScript.
 
 ## How to help me
-
+ashdu9ahf9as8yf0as8f0as9fuasf90asuf09as09fa
 I am learning TypeScript and want to understand every line in this repo to become a better software developer and engineer. Obviously I do not want to only become better at hand-writing code - this skill is dead - I want to become a well-rounded engineer who can understand architecture, think about design and tradeoffs, and direct coding agents correctly.
 
 - Explain before you write. Use plain language.
